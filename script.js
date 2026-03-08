@@ -7,13 +7,14 @@ const pctx = process.getContext("2d")
 
 const bwBtn = document.getElementById("bw")
 const colorBtn = document.getElementById("color")
-const switchBtn = document.getElementById("switchCam") // tombol switch kamera
+const switchBtn = document.getElementById("switchCam")
 
 let mode = "bw"
 const chars = "█▓▒@#MWB8&%$+=-:. "
 
 let faces = []
 let usingFrontCamera = true
+let boxScale = 4 // kotak X = 4x4 sel
 
 // Kamera
 let stream = null
@@ -29,7 +30,7 @@ async function startCamera(front){
 }
 startCamera(true)
 
-// MediaPipe Face Detection (hanya untuk kamera depan)
+// MediaPipe Face Detection (aktif hanya kamera depan)
 let faceDetection = null
 if("FaceDetection" in window){
     faceDetection = new FaceDetection({
@@ -52,7 +53,7 @@ if("FaceDetection" in window){
     })
 }
 
-// Deteksi wajah (frame by frame)
+// Deteksi wajah tiap frame
 async function detectFaces(){
     if(faceDetection && usingFrontCamera){
         await faceDetection.send({image: video})
@@ -130,13 +131,12 @@ function draw(){
             let face = insideFace(x, y)
 
             if(face){
-                // Font X sama dengan simbol lain
                 ctx.font = "bold " + ch + "px monospace"
                 ctx.fillStyle = "red"
 
-                // Perbesar kotak X: 2x2 sel
-                for(let dy=0; dy<2; dy++){
-                    for(let dx=0; dx<2; dx++){
+                // Perbesar kotak X: grid boxScale x boxScale
+                for(let dy=0; dy<boxScale; dy++){
+                    for(let dx=0; dx<boxScale; dx++){
                         let px2 = px + dx*cw
                         let py2 = py + dy*ch
                         ctx.fillText("X", px2, py2)
