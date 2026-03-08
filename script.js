@@ -15,10 +15,6 @@ const chars = "█▓▒@#MWB8&%$+=-:. "
 let faces = []
 let usingFrontCamera = true
 
-// gambar wajah
-const faceImg = new Image()
-faceImg.src = "gambar/image.jpg"
-
 // kamera
 let stream = null
 async function startCamera(front){
@@ -134,10 +130,12 @@ function draw(){
             let face = insideFace(x,y)
 
             if(face){
-                // gambar wajah menutupi seluruh area
-                ctx.drawImage(faceImg, px, py, cw, ch)
+                // Jejeran X merah, font diperbesar agar menutup wajah
+                ctx.font = "bold "+(ch*3)+"px monospace"
+                ctx.fillStyle = "red"
+                ctx.fillText("X", px, py)
             }else{
-                ctx.font="bold "+(ch*1.1)+"px monospace"
+                ctx.font = "bold "+(ch*1.1)+"px monospace"
                 if(mode==="bw"){
                     let index=Math.floor(brightness/255*(chars.length-1))
                     char=chars[index]
