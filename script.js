@@ -11,12 +11,12 @@ const switchBtn = document.getElementById("switchCam")
 
 let mode = "bw"
 
-// Simbol ASCII lebih banyak untuk efek glitch
+// Simbol lebih banyak untuk glitch keren
 const chars = "█▓▒@#MWB8&%$+=-:.!~^*/<>?|"
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 4 // ukuran grid di kotak wajah
+let boxScale = 4 // grid 4x4 sel
 
 // Kamera
 let stream = null
@@ -125,7 +125,6 @@ function draw(){
             let r = data[i]
             let g = data[i+1]
             let b = data[i+2]
-
             // brightness diperbesar untuk mode color
             let brightness = (r*0.299 + g*0.587 + b*0.114) * (mode==="color"?1.5:1)
             brightness = Math.min(brightness,255)
@@ -136,20 +135,23 @@ function draw(){
             let face = insideFace(x, y)
 
             if(face){
-                // Kotak wajah segi empat penuh, simbol acak merah
-                ctx.font = `${ch}px monospace`
+                ctx.font = "bold " + ch + "px monospace"
                 ctx.fillStyle = "red"
+
+                // Grid boxScale x boxScale dengan simbol acak
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
                         let px2 = px + dx*cw
                         let py2 = py + dy*ch
-                        let randomChar = Math.random() < 0.5 ? "0" : "1"
+                        let randomChar = chars[Math.floor(Math.random()*chars.length)]
                         ctx.fillText(randomChar, px2, py2)
                     }
                 }
             } else {
-                ctx.font = `${ch}px monospace`
+                ctx.font = "bold " + ch + "px monospace"
                 if(mode==="bw"){
+                    let index = Math.floor(brightness/255*(chars.length-1))
+                    char = chars[index]
                     ctx.fillStyle = "white"
                 } else {
                     ctx.fillStyle = `rgb(${r},${g},${b})`
