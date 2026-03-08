@@ -160,7 +160,7 @@ ctx.font="bold "+(ch*1.5)+"px monospace"
 
 ctx.fillStyle="white"
 
-char="█"
+char="X"
 
 ctx.fillText(char,px,py)
 
