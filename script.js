@@ -14,7 +14,7 @@ const chars = "█▓▒@#MWB8&%$+=-:. "
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 4 // kotak X = 4x4 sel
+let boxScale = 4 // kotak menutupi 4x4 sel
 
 // Kamera
 let stream = null
@@ -134,12 +134,13 @@ function draw(){
                 ctx.font = "bold " + ch + "px monospace"
                 ctx.fillStyle = "red"
 
-                // Perbesar kotak X: grid boxScale x boxScale
+                // Kotak X diganti simbol acak
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
                         let px2 = px + dx*cw
                         let py2 = py + dy*ch
-                        ctx.fillText("X", px2, py2)
+                        let randomChar = chars[Math.floor(Math.random()*chars.length)]
+                        ctx.fillText(randomChar, px2, py2)
                     }
                 }
             } else {
