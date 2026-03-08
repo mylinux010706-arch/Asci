@@ -14,7 +14,7 @@ const chars = "█▓▒@#MWB8&%$+=-:. "
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 4 // kotak menutupi 4x4 sel
+let boxScale = 8 // Kotak merah wajah diperbesar 2x lipat (dulu 4)
 
 // Kamera
 let stream = null
@@ -131,10 +131,10 @@ function draw(){
             let face = insideFace(x, y)
 
             if(face){
-                ctx.font = "bold " + ch + "px monospace"
+                ctx.font = "bold " + (ch*1.1) + "px monospace" // simbol sedikit diperbesar
                 ctx.fillStyle = "red"
 
-                // Kotak X diganti simbol acak
+                // Kotak wajah diperbesar 2x, simbol acak
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
                         let px2 = px + dx*cw
@@ -144,7 +144,7 @@ function draw(){
                     }
                 }
             } else {
-                ctx.font = "bold " + ch + "px monospace"
+                ctx.font = "bold " + (ch*1.1) + "px monospace" // simbol diperbesar
                 if(mode==="bw"){
                     let index = Math.floor(brightness/255*(chars.length-1))
                     char = chars[index]
