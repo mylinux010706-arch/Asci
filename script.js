@@ -1,147 +1,154 @@
-const video=document.getElementById("video")
-const ascii=document.getElementById("ascii")
-const process=document.getElementById("process")
+const video = document.getElementById("video")
+const ascii = document.getElementById("ascii")
+const process = document.getElementById("process")
 
-const ctx=ascii.getContext("2d")
-const pctx=process.getContext("2d")
+const ctx = ascii.getContext("2d")
+const pctx = process.getContext("2d")
 
-const bwBtn=document.getElementById("bw")
-const colorBtn=document.getElementById("color")
+const bwBtn = document.getElementById("bw")
+const colorBtn = document.getElementById("color")
+const switchBtn = document.getElementById("switchCam")
 
-let mode="bw"
-const chars="█▓▒@#MWB8&%$+=-:. "
+let mode = "bw"
+const chars = "█▓▒@#MWB8&%$+=-:. "
 
-let faces=[]
+let faces = []
+let usingFrontCamera = true
+
+// gambar wajah
+const faceImg = new Image()
+faceImg.src = "gambar/image.jpg"
 
 // kamera
-navigator.mediaDevices.getUserMedia({
-video:{facingMode:"user"}
-}).then(stream=>{
-video.srcObject=stream
-})
-
-// MediaPipe Face Detection
-const faceDetection=new FaceDetection({
-locateFile:(file)=>{
-return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+let stream = null
+async function startCamera(front){
+    if(stream){
+        stream.getTracks().forEach(track=>track.stop())
+    }
+    stream = await navigator.mediaDevices.getUserMedia({
+        video:{ facingMode: front ? "user" : "environment" }
+    })
+    video.srcObject = stream
 }
-})
+startCamera(true)
 
-faceDetection.setOptions({
-model:"short",
-minDetectionConfidence:0.5
-})
-
-faceDetection.onResults(results=>{
-faces=[]
-if(results.detections){
-for(let d of results.detections){
-let box=d.boundingBox
-faces.push({
-x:box.xCenter-box.width/2,
-y:box.yCenter-box.height/2,
-w:box.width,
-h:box.height
-})
+// MediaPipe Face Detection (hanya aktif di kamera depan)
+let faceDetection = null
+if("FaceDetection" in window){
+    faceDetection = new FaceDetection({
+        locateFile: (file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+    })
+    faceDetection.setOptions({model:"short", minDetectionConfidence:0.5})
+    faceDetection.onResults(results=>{
+        faces=[]
+        if(results.detections){
+            for(let d of results.detections){
+                let box = d.boundingBox
+                faces.push({
+                    x:box.xCenter-box.width/2,
+                    y:box.yCenter-box.height/2,
+                    w:box.width,
+                    h:box.height
+                })
+            }
+        }
+    })
 }
-}
-})
 
 async function detectFaces(){
-await faceDetection.send({image:video})
-requestAnimationFrame(detectFaces)
+    if(faceDetection && usingFrontCamera){
+        await faceDetection.send({image:video})
+    }
+    requestAnimationFrame(detectFaces)
 }
 
 video.onloadeddata=()=>{
-ascii.width=640
-ascii.height=480
+    ascii.width = 640
+    ascii.height = 480
+    process.width = 64
+    process.height = 48
 
-process.width=64
-process.height=48
-
-detectFaces()
-draw()
+    detectFaces()
+    draw()
 }
 
 // tombol
-bwBtn.onclick=()=>mode="bw"
-colorBtn.onclick=()=>mode="color"
+bwBtn.onclick = ()=>mode="bw"
+colorBtn.onclick = ()=>mode="color"
+switchBtn.onclick = ()=>{
+    usingFrontCamera = !usingFrontCamera
+    startCamera(usingFrontCamera)
+}
 
 // cek apakah pixel di dalam wajah
 function insideFace(x,y){
-for(let f of faces){
-let fx=f.x*process.width
-let fy=f.y*process.height
-let fw=f.w*process.width
-let fh=f.h*process.height
-if(x>fx && x<fx+fw && y>fy && y<fy+fh){
-return true
-}
-}
-return false
+    if(!usingFrontCamera) return false
+    for(let f of faces){
+        let fx=f.x*process.width
+        let fy=f.y*process.height
+        let fw=f.w*process.width
+        let fh=f.h*process.height
+        if(x>fx && x<fx+fw && y>fy && y<fy+fh) return true
+    }
+    return false
 }
 
 // draw ASCII
 function draw(){
-let vw=video.videoWidth
-let vh=video.videoHeight
+    let vw = video.videoWidth
+    let vh = video.videoHeight
 
-let targetRatio=4/3
-let videoRatio=vw/vh
+    let targetRatio = 4/3
+    let videoRatio = vw/vh
 
-let sx=0, sy=0, sw=vw, sh=vh
+    let sx=0, sy=0, sw=vw, sh=vh
+    if(videoRatio>targetRatio){
+        sw=vh*targetRatio
+        sx=(vw-sw)/2
+    }else{
+        sh=vw/targetRatio
+        sy=(vh-sh)/2
+    }
 
-if(videoRatio>targetRatio){
-sw=vh*targetRatio
-sx=(vw-sw)/2
-}else{
-sh=vw/targetRatio
-sy=(vh-sh)/2
-}
+    pctx.drawImage(video,sx,sy,sw,sh,0,0,process.width,process.height)
+    let frame = pctx.getImageData(0,0,process.width,process.height)
+    let data = frame.data
 
-pctx.drawImage(video,sx,sy,sw,sh,0,0,process.width,process.height)
-let frame=pctx.getImageData(0,0,process.width,process.height)
-let data=frame.data
+    ctx.fillStyle="black"
+    ctx.fillRect(0,0,ascii.width,ascii.height)
 
-ctx.fillStyle="black"
-ctx.fillRect(0,0,ascii.width,ascii.height)
+    let cw = ascii.width/process.width
+    let ch = ascii.height/process.height
 
-let cw=ascii.width/process.width
-let ch=ascii.height/process.height
+    for(let y=0;y<process.height;y++){
+        for(let x=0;x<process.width;x++){
+            let i = (y*process.width+x)*4
+            let r=data[i]
+            let g=data[i+1]
+            let b=data[i+2]
+            let brightness = (r*0.299+g*0.587+b*0.114)
+            let char = chars[Math.floor(brightness/255*(chars.length-1))]
+            let px = x*cw
+            let py = y*ch
 
-for(let y=0;y<process.height;y++){
-for(let x=0;x<process.width;x++){
-let i=(y*process.width+x)*4
-let r=data[i]
-let g=data[i+1]
-let b=data[i+2]
-let brightness=(r*0.299+g*0.587+b*0.114)
-let char=chars[Math.floor(brightness/255*(chars.length-1))]
-let px=x*cw
-let py=y*ch
+            let face = insideFace(x,y)
 
-let face=insideFace(x,y)
+            if(face){
+                // gambar wajah menutupi seluruh area
+                ctx.drawImage(faceImg, px, py, cw, ch)
+            }else{
+                ctx.font="bold "+(ch*1.1)+"px monospace"
+                if(mode==="bw"){
+                    let index=Math.floor(brightness/255*(chars.length-1))
+                    char=chars[index]
+                    ctx.fillStyle="white"
+                }else{
+                    ctx.fillStyle=`rgb(${r},${g},${b})`
+                }
+                ctx.fillText(char, px, py)
+            }
+        }
+    }
 
-if(face){
-    // Ukuran X lebih besar supaya menutup seluruh wajah
-    ctx.font="bold "+(ch*2.2)+"px monospace"
-    ctx.fillStyle="red"
-
-    // Gambar X di semua “sub-grid” dalam area wajah
-    ctx.fillText("X", px, py)
-}else{
-ctx.font="bold "+(ch*1.1)+"px monospace"
-if(mode==="bw"){
-let index=Math.floor(brightness/255*(chars.length-1))
-char=chars[index]
-ctx.fillStyle="white"
-}else{
-ctx.fillStyle="rgb("+r+","+g+","+b+")"
-}
-ctx.fillText(char,px,py)
-}
-}
-}
-
-requestAnimationFrame(draw)
+    requestAnimationFrame(draw)
 }
