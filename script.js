@@ -13,7 +13,6 @@ let mode="bw"
 
 const chars="█▓▒@#MWB8&%$+=-:. "
 
-let faceDetector
 let faces=[]
 
 navigator.mediaDevices.getUserMedia({
@@ -22,17 +21,43 @@ video:{facingMode:"user"}
 video.srcObject=stream
 })
 
-if("FaceDetector" in window){
-faceDetector=new FaceDetector({fastMode:true,maxDetectedFaces:3})
+const faceDetection=new FaceDetection({
+locateFile:(file)=>{
+return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
 }
+})
+
+faceDetection.setOptions({
+model:"short",
+minDetectionConfidence:0.5
+})
+
+faceDetection.onResults(results=>{
+
+faces=[]
+
+if(results.detections){
+
+for(let d of results.detections){
+
+let box=d.boundingBox
+
+faces.push({
+x:box.xCenter-box.width/2,
+y:box.yCenter-box.height/2,
+w:box.width,
+h:box.height
+})
+
+}
+
+}
+
+})
 
 async function detectFaces(){
 
-if(!faceDetector)return
-
-try{
-faces=await faceDetector.detect(video)
-}catch(e){}
+await faceDetection.send({image:video})
 
 requestAnimationFrame(detectFaces)
 
@@ -59,12 +84,10 @@ function insideFace(x,y){
 
 for(let f of faces){
 
-let box=f.boundingBox
-
-let fx=box.x/video.videoWidth*process.width
-let fy=box.y/video.videoHeight*process.height
-let fw=box.width/video.videoWidth*process.width
-let fh=box.height/video.videoHeight*process.height
+let fx=f.x*process.width
+let fy=f.y*process.height
+let fw=f.w*process.width
+let fh=f.h*process.height
 
 if(x>fx && x<fx+fw && y>fy && y<fy+fh){
 return true
@@ -73,6 +96,7 @@ return true
 }
 
 return false
+
 }
 
 function draw(){
