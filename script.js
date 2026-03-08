@@ -11,12 +11,12 @@ const switchBtn = document.getElementById("switchCam")
 
 let mode = "bw"
 
-// Simbol lebih banyak untuk efek glitch
+// Simbol ASCII lebih banyak untuk efek glitch
 const chars = "█▓▒@#MWB8&%$+=-:.!~^*/<>?|"
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 6 // Kotak wajah lebih besar, grid 6x6
+let boxScale = 4 // ukuran grid di kotak wajah
 
 // Kamera
 let stream = null
@@ -32,7 +32,7 @@ async function startCamera(front){
 }
 startCamera(true)
 
-// MediaPipe Face Detection (hanya kamera depan)
+// MediaPipe Face Detection (hanya untuk kamera depan)
 let faceDetection = null
 if("FaceDetection" in window){
     faceDetection = new FaceDetection({
@@ -126,19 +126,18 @@ function draw(){
             let g = data[i+1]
             let b = data[i+2]
 
-            // Brightness diperbesar untuk mode color
+            // brightness diperbesar untuk mode color
             let brightness = (r*0.299 + g*0.587 + b*0.114) * (mode==="color"?1.5:1)
             brightness = Math.min(brightness,255)
             let char = chars[Math.floor(brightness/255*(chars.length-1))]
-
             let px = x * cw
             let py = y * ch
 
             let face = insideFace(x, y)
 
             if(face){
-                // Kotak wajah lebih besar, simbol acak merah
-                ctx.font = `${ch*1.1}px monospace` // simbol sedikit diperbesar
+                // Kotak wajah segi empat penuh, simbol acak merah
+                ctx.font = `${ch}px monospace`
                 ctx.fillStyle = "red"
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
@@ -149,7 +148,7 @@ function draw(){
                     }
                 }
             } else {
-                ctx.font = `${ch*1.1}px monospace` // simbol sedikit diperbesar
+                ctx.font = `${ch}px monospace`
                 if(mode==="bw"){
                     ctx.fillStyle = "white"
                 } else {
