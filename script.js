@@ -68,8 +68,8 @@ video.onloadeddata=()=>{
 ascii.width=640
 ascii.height=480
 
-process.width=40
-process.height=30
+process.width=64
+process.height=48
 
 detectFaces()
 
@@ -156,7 +156,7 @@ let face=insideFace(x,y)
 
 if(face){
 
-ctx.font="bold "+(ch*2)+"px monospace"
+ctx.font="bold "+(ch*1.5)+"px monospace"
 
 ctx.fillStyle="white"
 
@@ -166,7 +166,7 @@ ctx.fillText(char,px,py)
 
 }else{
 
-ctx.font="bold "+ch+"px monospace"
+ctx.font="bold "+(ch*1.1)+"px monospace"
 
 if(mode==="bw"){
 
