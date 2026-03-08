@@ -11,12 +11,14 @@ const switchBtn = document.getElementById("switchCam")
 
 let mode = "bw"
 
-// simbol glitch hanya 0 dan 1
-const chars = "01"
+// Simbol untuk ASCII normal
+const asciiChars = "█▓▒@#MWB8&%$+=-:.!~^*/<>?|"
+// Simbol wajah 0/1
+const faceChars = "01"
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 4 // kotak 4x4 sel
+let boxScale = 4 // ukuran kotak grid
 
 // Kamera
 let stream = null
@@ -32,7 +34,7 @@ async function startCamera(front){
 }
 startCamera(true)
 
-// MediaPipe Face Detection (hanya untuk kamera depan)
+// Face Detection (hanya kamera depan)
 let faceDetection = null
 if("FaceDetection" in window){
     faceDetection = new FaceDetection({
@@ -118,9 +120,7 @@ function draw(){
 
     let cw = ascii.width / process.width
     let ch = ascii.height / process.height
-
-    // pastikan kotak segi empat: ambil ukuran min(cw,ch)
-    let boxSize = Math.min(cw,ch) * boxScale
+    let boxSize = Math.min(cw,ch) * boxScale // square kotak
 
     for(let y=0; y<process.height; y++){
         for(let x=0; x<process.width; x++){
@@ -128,10 +128,9 @@ function draw(){
             let r = data[i]
             let g = data[i+1]
             let b = data[i+2]
-            // brightness diperbesar untuk mode color
-            let brightness = (r*0.299 + g*0.587 + b*0.114) * (mode==="color"?1.5:1)
+            let brightness = (r*0.299 + g*0.587 + b*0.114) * (mode==="color"?1.8:1)
             brightness = Math.min(brightness,255)
-            let char = chars[Math.floor(brightness/255*(chars.length-1))]
+            let char = asciiChars[Math.floor(brightness/255*(asciiChars.length-1))]
             let px = x * cw
             let py = y * ch
 
@@ -141,20 +140,20 @@ function draw(){
                 ctx.font = "bold " + ch + "px monospace"
                 ctx.fillStyle = "red"
 
-                // Kotak wajah: simbol 0 dan 1 acak dalam grid boxScale x boxScale
+                // Kotak wajah: square grid boxScale x boxScale
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
-                        let px2 = px + dx*Math.min(cw,ch)
-                        let py2 = py + dy*Math.min(cw,ch)
-                        let randomChar = chars[Math.floor(Math.random()*chars.length)]
+                        let px2 = px + dx * Math.min(cw,ch)
+                        let py2 = py + dy * Math.min(cw,ch)
+                        let randomChar = faceChars[Math.floor(Math.random()*faceChars.length)]
                         ctx.fillText(randomChar, px2, py2)
                     }
                 }
             } else {
                 ctx.font = "bold " + ch + "px monospace"
                 if(mode==="bw"){
-                    let index = Math.floor(brightness/255*(chars.length-1))
-                    char = chars[index]
+                    let index = Math.floor(brightness/255*(asciiChars.length-1))
+                    char = asciiChars[index]
                     ctx.fillStyle = "white"
                 } else {
                     ctx.fillStyle = `rgb(${r},${g},${b})`
