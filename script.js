@@ -11,12 +11,12 @@ const switchBtn = document.getElementById("switchCam")
 
 let mode = "bw"
 
-// Simbol lebih banyak untuk glitch keren
-const chars = "█▓▒@#MWB8&%$+=-:.!~^*/<>?|"
+// simbol glitch hanya 0 dan 1
+const chars = "01"
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 4 // grid 4x4 sel
+let boxScale = 4 // kotak 4x4 sel
 
 // Kamera
 let stream = null
@@ -119,6 +119,9 @@ function draw(){
     let cw = ascii.width / process.width
     let ch = ascii.height / process.height
 
+    // pastikan kotak segi empat: ambil ukuran min(cw,ch)
+    let boxSize = Math.min(cw,ch) * boxScale
+
     for(let y=0; y<process.height; y++){
         for(let x=0; x<process.width; x++){
             let i = (y * process.width + x) * 4
@@ -138,11 +141,11 @@ function draw(){
                 ctx.font = "bold " + ch + "px monospace"
                 ctx.fillStyle = "red"
 
-                // Grid boxScale x boxScale dengan simbol acak
+                // Kotak wajah: simbol 0 dan 1 acak dalam grid boxScale x boxScale
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
-                        let px2 = px + dx*cw
-                        let py2 = py + dy*ch
+                        let px2 = px + dx*Math.min(cw,ch)
+                        let py2 = py + dy*Math.min(cw,ch)
                         let randomChar = chars[Math.floor(Math.random()*chars.length)]
                         ctx.fillText(randomChar, px2, py2)
                     }
