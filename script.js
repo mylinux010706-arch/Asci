@@ -11,12 +11,12 @@ const switchBtn = document.getElementById("switchCam")
 
 let mode = "bw"
 
-// Simbol lebih banyak untuk glitch keren
+// Simbol lebih banyak untuk efek glitch
 const chars = "█▓▒@#MWB8&%$+=-:.!~^*/<>?|"
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 4 // grid 4x4 sel
+let boxScale = 6 // Kotak wajah lebih besar, grid 6x6
 
 // Kamera
 let stream = null
@@ -32,7 +32,7 @@ async function startCamera(front){
 }
 startCamera(true)
 
-// MediaPipe Face Detection (hanya untuk kamera depan)
+// MediaPipe Face Detection (hanya kamera depan)
 let faceDetection = null
 if("FaceDetection" in window){
     faceDetection = new FaceDetection({
@@ -125,33 +125,32 @@ function draw(){
             let r = data[i]
             let g = data[i+1]
             let b = data[i+2]
-            // brightness diperbesar untuk mode color
+
+            // Brightness diperbesar untuk mode color
             let brightness = (r*0.299 + g*0.587 + b*0.114) * (mode==="color"?1.5:1)
             brightness = Math.min(brightness,255)
             let char = chars[Math.floor(brightness/255*(chars.length-1))]
+
             let px = x * cw
             let py = y * ch
 
             let face = insideFace(x, y)
 
             if(face){
-                ctx.font = "bold " + ch + "px monospace"
+                // Kotak wajah lebih besar, simbol acak merah
+                ctx.font = `${ch*1.1}px monospace` // simbol sedikit diperbesar
                 ctx.fillStyle = "red"
-
-                // Grid boxScale x boxScale dengan simbol acak
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
                         let px2 = px + dx*cw
                         let py2 = py + dy*ch
-                        let randomChar = chars[Math.floor(Math.random()*chars.length)]
+                        let randomChar = Math.random() < 0.5 ? "0" : "1"
                         ctx.fillText(randomChar, px2, py2)
                     }
                 }
             } else {
-                ctx.font = "bold " + ch + "px monospace"
+                ctx.font = `${ch*1.1}px monospace` // simbol sedikit diperbesar
                 if(mode==="bw"){
-                    let index = Math.floor(brightness/255*(chars.length-1))
-                    char = chars[index]
                     ctx.fillStyle = "white"
                 } else {
                     ctx.fillStyle = `rgb(${r},${g},${b})`
