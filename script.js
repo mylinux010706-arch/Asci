@@ -1,21 +1,21 @@
-const video = document.getElementById("video")
-const ascii = document.getElementById("ascii")
-const process = document.getElementById("process")
+const video=document.getElementById("video")
+const ascii=document.getElementById("ascii")
+const process=document.getElementById("process")
 
-const ctx = ascii.getContext("2d")
-const pctx = process.getContext("2d")
+const ctx=ascii.getContext("2d")
+const pctx=process.getContext("2d")
 
-const bwBtn = document.getElementById("bw")
-const colorBtn = document.getElementById("color")
-const switchBtn = document.getElementById("switchCam")
+const bwBtn=document.getElementById("bw")
+const colorBtn=document.getElementById("color")
+const switchBtn=document.getElementById("switchCam") // tombol switch
 
-let mode = "bw"
-const chars = "█▓▒@#MWB8&%$+=-:. "
+let mode="bw"
+const chars="█▓▒@#MWB8&%$+=-:. "
 
-let faces = []
-let usingFrontCamera = true
+let faces=[]
+let usingFrontCamera = true // awal pakai kamera depan
 
-// kamera
+// Kamera
 let stream = null
 async function startCamera(front){
     if(stream){
@@ -25,6 +25,7 @@ async function startCamera(front){
         video:{ facingMode: front ? "user" : "environment" }
     })
     video.srcObject = stream
+    usingFrontCamera = front
 }
 startCamera(true)
 
@@ -32,14 +33,14 @@ startCamera(true)
 let faceDetection = null
 if("FaceDetection" in window){
     faceDetection = new FaceDetection({
-        locateFile: (file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+        locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
     })
     faceDetection.setOptions({model:"short", minDetectionConfidence:0.5})
     faceDetection.onResults(results=>{
         faces=[]
         if(results.detections){
             for(let d of results.detections){
-                let box = d.boundingBox
+                let box=d.boundingBox
                 faces.push({
                     x:box.xCenter-box.width/2,
                     y:box.yCenter-box.height/2,
@@ -59,24 +60,22 @@ async function detectFaces(){
 }
 
 video.onloadeddata=()=>{
-    ascii.width = 640
-    ascii.height = 480
-    process.width = 64
-    process.height = 48
+    ascii.width=640
+    ascii.height=480
+
+    process.width=64
+    process.height=48
 
     detectFaces()
     draw()
 }
 
-// tombol
-bwBtn.onclick = ()=>mode="bw"
-colorBtn.onclick = ()=>mode="color"
-switchBtn.onclick = ()=>{
-    usingFrontCamera = !usingFrontCamera
-    startCamera(usingFrontCamera)
-}
+// Tombol
+bwBtn.onclick=()=>mode="bw"
+colorBtn.onclick=()=>mode="color"
+switchBtn.onclick=()=>startCamera(!usingFrontCamera)
 
-// cek apakah pixel di dalam wajah
+// Cek pixel di wajah
 function insideFace(x,y){
     if(!usingFrontCamera) return false
     for(let f of faces){
@@ -89,13 +88,13 @@ function insideFace(x,y){
     return false
 }
 
-// draw ASCII
+// Draw ASCII
 function draw(){
-    let vw = video.videoWidth
-    let vh = video.videoHeight
+    let vw=video.videoWidth
+    let vh=video.videoHeight
 
-    let targetRatio = 4/3
-    let videoRatio = vw/vh
+    let targetRatio=4/3
+    let videoRatio=vw/vh
 
     let sx=0, sy=0, sw=vw, sh=vh
     if(videoRatio>targetRatio){
@@ -107,35 +106,35 @@ function draw(){
     }
 
     pctx.drawImage(video,sx,sy,sw,sh,0,0,process.width,process.height)
-    let frame = pctx.getImageData(0,0,process.width,process.height)
-    let data = frame.data
+    let frame=pctx.getImageData(0,0,process.width,process.height)
+    let data=frame.data
 
     ctx.fillStyle="black"
     ctx.fillRect(0,0,ascii.width,ascii.height)
 
-    let cw = ascii.width/process.width
-    let ch = ascii.height/process.height
+    let cw=ascii.width/process.width
+    let ch=ascii.height/process.height
 
     for(let y=0;y<process.height;y++){
         for(let x=0;x<process.width;x++){
-            let i = (y*process.width+x)*4
+            let i=(y*process.width+x)*4
             let r=data[i]
             let g=data[i+1]
             let b=data[i+2]
-            let brightness = (r*0.299+g*0.587+b*0.114)
-            let char = chars[Math.floor(brightness/255*(chars.length-1))]
-            let px = x*cw
-            let py = y*ch
+            let brightness=(r*0.299+g*0.587+b*0.114)
+            let char=chars[Math.floor(brightness/255*(chars.length-1))]
+            let px=x*cw
+            let py=y*ch
 
-            let face = insideFace(x,y)
+            let face=insideFace(x,y)
 
             if(face){
-                // Jejeran X merah, font diperbesar agar menutup wajah
-                ctx.font = "bold "+(ch*3)+"px monospace"
-                ctx.fillStyle = "red"
-                ctx.fillText("X", px, py)
+                // X merah diperbesar untuk menutupi wajah
+                ctx.font="bold "+(ch*2.2)+"px monospace"
+                ctx.fillStyle="red"
+                ctx.fillText("X",px,py)
             }else{
-                ctx.font = "bold "+(ch*1.1)+"px monospace"
+                ctx.font="bold "+(ch*1.1)+"px monospace"
                 if(mode==="bw"){
                     let index=Math.floor(brightness/255*(chars.length-1))
                     char=chars[index]
@@ -143,7 +142,7 @@ function draw(){
                 }else{
                     ctx.fillStyle=`rgb(${r},${g},${b})`
                 }
-                ctx.fillText(char, px, py)
+                ctx.fillText(char,px,py)
             }
         }
     }
