@@ -7,7 +7,7 @@ const pctx = process.getContext("2d")
 
 const bwBtn = document.getElementById("bw")
 const colorBtn = document.getElementById("color")
-const switchBtn = document.getElementById("switchCam")
+const switchBtn = document.getElementById("switchCam") // tombol switch kamera
 
 let mode = "bw"
 const chars = "█▓▒@#MWB8&%$+=-:. "
@@ -29,7 +29,7 @@ async function startCamera(front){
 }
 startCamera(true)
 
-// MediaPipe Face Detection (aktif hanya kamera depan)
+// MediaPipe Face Detection (hanya untuk kamera depan)
 let faceDetection = null
 if("FaceDetection" in window){
     faceDetection = new FaceDetection({
@@ -52,7 +52,7 @@ if("FaceDetection" in window){
     })
 }
 
-// Deteksi wajah tiap frame
+// Deteksi wajah (frame by frame)
 async function detectFaces(){
     if(faceDetection && usingFrontCamera){
         await faceDetection.send({image: video})
@@ -76,7 +76,7 @@ bwBtn.onclick = () => mode = "bw"
 colorBtn.onclick = () => mode = "color"
 switchBtn.onclick = () => startCamera(!usingFrontCamera)
 
-// Cek pixel dalam wajah
+// Cek apakah pixel di dalam wajah
 function insideFace(x, y){
     if(!usingFrontCamera) return false
     for(let f of faces){
@@ -116,8 +116,8 @@ function draw(){
     let cw = ascii.width / process.width
     let ch = ascii.height / process.height
 
-    for(let y = 0; y < process.height; y++){
-        for(let x = 0; x < process.width; x++){
+    for(let y=0; y<process.height; y++){
+        for(let x=0; x<process.width; x++){
             let i = (y * process.width + x) * 4
             let r = data[i]
             let g = data[i+1]
@@ -127,13 +127,21 @@ function draw(){
             let px = x * cw
             let py = y * ch
 
-            let face = insideFace(x,y)
+            let face = insideFace(x, y)
 
             if(face){
-                // X merah sama ukuran dengan simbol lain
+                // Font X sama dengan simbol lain
                 ctx.font = "bold " + ch + "px monospace"
                 ctx.fillStyle = "red"
-                ctx.fillText("X", px, py)
+
+                // Perbesar kotak X: 2x2 sel
+                for(let dy=0; dy<2; dy++){
+                    for(let dx=0; dx<2; dx++){
+                        let px2 = px + dx*cw
+                        let py2 = py + dy*ch
+                        ctx.fillText("X", px2, py2)
+                    }
+                }
             } else {
                 ctx.font = "bold " + ch + "px monospace"
                 if(mode==="bw"){
