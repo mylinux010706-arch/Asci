@@ -123,9 +123,12 @@ let py=y*ch
 let face=insideFace(x,y)
 
 if(face){
-ctx.font="bold "+(ch*1.5)+"px monospace"
-ctx.fillStyle="red"
-ctx.fillText("X", px, py)
+    // Ukuran X lebih besar supaya menutup seluruh wajah
+    ctx.font="bold "+(ch*2.2)+"px monospace"
+    ctx.fillStyle="red"
+
+    // Gambar X di semua “sub-grid” dalam area wajah
+    ctx.fillText("X", px, py)
 }else{
 ctx.font="bold "+(ch*1.1)+"px monospace"
 if(mode==="bw"){
