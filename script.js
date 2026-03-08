@@ -10,11 +10,13 @@ const colorBtn = document.getElementById("color")
 const switchBtn = document.getElementById("switchCam")
 
 let mode = "bw"
-const chars = "█▓▒@#MWB8&%$+=-:. "
+
+// Simbol lebih banyak untuk glitch keren
+const chars = "█▓▒@#MWB8&%$+=-:.!~^*/<>?|"
 
 let faces = []
 let usingFrontCamera = true
-let boxScale = 4 // kotak menutupi 4x4 sel
+let boxScale = 4 // grid 4x4 sel
 
 // Kamera
 let stream = null
@@ -30,7 +32,7 @@ async function startCamera(front){
 }
 startCamera(true)
 
-// MediaPipe Face Detection (aktif hanya kamera depan)
+// MediaPipe Face Detection (hanya untuk kamera depan)
 let faceDetection = null
 if("FaceDetection" in window){
     faceDetection = new FaceDetection({
@@ -123,7 +125,9 @@ function draw(){
             let r = data[i]
             let g = data[i+1]
             let b = data[i+2]
-            let brightness = r*0.299 + g*0.587 + b*0.114
+            // brightness diperbesar untuk mode color
+            let brightness = (r*0.299 + g*0.587 + b*0.114) * (mode==="color"?1.5:1)
+            brightness = Math.min(brightness,255)
             let char = chars[Math.floor(brightness/255*(chars.length-1))]
             let px = x * cw
             let py = y * ch
@@ -134,7 +138,7 @@ function draw(){
                 ctx.font = "bold " + ch + "px monospace"
                 ctx.fillStyle = "red"
 
-                // Kotak X diganti simbol acak
+                // Grid boxScale x boxScale dengan simbol acak
                 for(let dy=0; dy<boxScale; dy++){
                     for(let dx=0; dx<boxScale; dx++){
                         let px2 = px + dx*cw
